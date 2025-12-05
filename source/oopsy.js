@@ -333,6 +333,7 @@ function run() {
 			case "versio": target_path = path.join(__dirname, "versio.json"); break;
 			case "bluemchen": target_path = path.join(__dirname, "bluemchen.json"); break;
 			case "nehcmeulb": target_path = path.join(__dirname, "nehcmeulb.json"); break;
+			case "cosmolab": target_path = path.join(__dirname, "cosmolab.json"); break;
 			case "pod": target_path = path.join(__dirname, "pod.json"); break;
 			case "patch_init": target_path = path.join(__dirname, "patch_init.json"); break;
 			case "field": target_path = path.join(__dirname, "field.json"); break;
