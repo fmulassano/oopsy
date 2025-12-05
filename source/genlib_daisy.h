@@ -282,6 +282,12 @@ namespace oopsy {
 		uint8_t midi_in_active = 0, midi_out_active = 0;
 		uint8_t midi_out_data[OOPSY_MIDI_BUFFER_SIZE];
 		float midi_in_data[OOPSY_BLOCK_SIZE];
+		
+		// MIDI RX buffer for DMA listen mode (libdaisy v8.0.0)
+		static uint8_t midi_rx_buffer[256];
+		static uint32_t midi_rx_write_idx;
+		static uint32_t midi_rx_read_idx;
+		static void MidiRxCallback(uint8_t* data, size_t size, void* context, daisy::UartHandler::Result result);
 		int midi_data_idx = 0;
 		int midi_parse_state = 0;
 		#endif //OOPSY_TARGET_USES_MIDI_UART
@@ -524,10 +530,12 @@ namespace oopsy {
 			config.parity        = daisy::UartHandler::Config::Parity::NONE;
 			config.mode          = daisy::UartHandler::Config::Mode::TX_RX;
 			config.wordlength    = daisy::UartHandler::Config::WordLength::BITS_8;
-			config.pin_config.rx = {DSY_GPIOB, 7};
-			config.pin_config.tx = {DSY_GPIOB, 6};
+			config.pin_config.rx = daisy::Pin(daisy::DSY_GPIOB, 7);
+			config.pin_config.tx = daisy::Pin(daisy::DSY_GPIOB, 6);
 			uart.Init(config);
-			uart.StartRx();
+			// Use DMA listen mode for MIDI reception in v8.0.0
+			static uint8_t midi_rx_buffer[256];
+			uart.DmaListenStart(midi_rx_buffer, 256, MidiRxCallback, this);
 			#endif
 
 			app_selected = 0;

@@ -1734,8 +1734,10 @@ struct App_${name} : public oopsy::App<App_${name}> {
 			.map(node=>`
 		${interpolate(node.config.code, node)}`).join("")}
 		${defines.OOPSY_TARGET_USES_MIDI_UART ? `
-		while(daisy.uart.Readable()) {
-			uint8_t byte = daisy.uart.PopRx();
+		// Read MIDI bytes from DMA buffer (libdaisy v8.0.0)
+		while(daisy.midi_rx_read_idx != daisy.midi_rx_write_idx) {
+			uint8_t byte = daisy.midi_rx_buffer[daisy.midi_rx_read_idx];
+			daisy.midi_rx_read_idx = (daisy.midi_rx_read_idx + 1) % 256;
 			if (byte >= 128) { // status byte
 				${gen.params
 				.map(name=>nodes[name])
