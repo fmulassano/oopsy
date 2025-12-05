@@ -13,3 +13,6 @@ help/*.json
 templates/*.cpp
 templates/*.h
 templates/*.json
+.DS_Store
+*.DS_Store
+**/.DS_Store

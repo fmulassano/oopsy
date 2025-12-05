@@ -469,6 +469,7 @@ function run() {
 			case "versio": target = arg; break;
 			case "bluemchen": target_path = path.join(__dirname, "seed.bluemchen.json"); break;
 			case "nehcmeulb": target_path = path.join(__dirname, "seed.nehcmeulb.json"); break;
+			case "cosmolab": target_path = path.join(__dirname, "cosmolab.json"); break;
 
 			case "watch": watch=true; break;
 
