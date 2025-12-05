@@ -1090,6 +1090,24 @@ namespace oopsy {
 		}
 	}
 
+	#ifdef OOPSY_TARGET_USES_MIDI_UART
+	// MIDI RX callback for DMA listen mode (libdaisy v8.0.0)
+	uint8_t GenDaisy::midi_rx_buffer[256];
+	uint32_t GenDaisy::midi_rx_write_idx = 0;
+	uint32_t GenDaisy::midi_rx_read_idx = 0;
+	
+	void GenDaisy::MidiRxCallback(uint8_t* data, size_t size, void* context, daisy::UartHandler::Result result) {
+		if (result != daisy::UartHandler::Result::OK) return;
+		GenDaisy* self = static_cast<GenDaisy*>(context);
+		for (size_t i = 0; i < size; i++) {
+			uint32_t next_idx = (self->midi_rx_write_idx + 1) % 256;
+			if (next_idx != self->midi_rx_read_idx) {
+				self->midi_rx_buffer[self->midi_rx_write_idx] = data[i];
+				self->midi_rx_write_idx = next_idx;
+			}
+		}
+	}
+	#endif
 
 	// Curiously-recurring template to make App definitions simpler:
 	template<typename T>
