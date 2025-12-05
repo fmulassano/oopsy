@@ -1755,10 +1755,10 @@ struct App_${name} : public oopsy::App<App_${name}> {
 				.map(name=>nodes[name])
 				.filter(node => node.where == "midi_status")
 				.map(node=>node.code)
-				.concat(`if (byte == 0xFF) { // reset event -> go to bootloader
+				.concat(`				if (byte == 0xFF) { // reset event -> go to bootloader
 					daisy.log("reboot");
-					daisy::System::ResetToBootloader();
-				} 
+					daisy::System::ResetToBootloader(daisy::System::BootloaderMode::STM);
+				}
 				if (byte <= 240 || byte == 247) {
 					daisy.midi.status = byte; 
 					daisy.midi.lastbyte = 255; // means 'no bytes received'
