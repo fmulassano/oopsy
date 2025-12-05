@@ -728,11 +728,17 @@ function run() {
 	const makefile_path = path.join(build_path, `Makefile`)
 	const bin_path = path.join(build_path, "build", build_name+".bin");
 	const maincpp_path = path.join(build_path, `${build_name}_${target}.cpp`);
+	const includes = (hardware.includes || []).map(
+		item => `-I"${posixify_path(path.relative(build_path, item))}"`);
 	fs.writeFileSync(makefile_path, `
 # Project Name
 TARGET = ${build_name}
+# App type
+APP_TYPE = ${hardware.app_type || "BOOT_NONE"}
 # Sources -- note, won't work with paths with spaces
-CPP_SOURCES = ${posixify_path(path.relative(build_path, maincpp_path).replace(" ", "\\ "))}
+CPP_SOURCES = ${posixify_path(path.relative(build_path, maincpp_path).replace(" ", "\\ "))} \\
+${posixify_path(path.relative(build_path, path.join(__dirname, "petal_sm", "daisy_petal_125b_sm.cpp")))}
+${includes.length > 0 ? `C_INCLUDES = ${includes.join('\\\n')}` : ``}
 # Library Locations
 LIBDAISY_DIR = ${(posixify_path(path.relative(build_path, path.join(__dirname, "libdaisy"))).replace(" ", "\\ "))}
 ${hardware.defines.OOPSY_TARGET_USES_SDMMC ? `USE_FATFS = 1`:``}
@@ -742,7 +748,8 @@ OPT = -O3
 SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
 include $(SYSTEM_FILES_DIR)/Makefile
 # Include the gen_dsp files
-CFLAGS+=-I"${posixify_path(path.relative(build_path, path.join(__dirname, "gen_dsp")))}"
+CFLAGS+=-I"${posixify_path(path.relative(build_path, path.join(__dirname, "gen_dsp")))}" \\
+-I${posixify_path(path.relative(build_path, path.join(__dirname, "petal_sm")))}
 # Silence irritating warnings:
 CFLAGS+=-O3 -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable
 CPPFLAGS+=-O3 -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable
