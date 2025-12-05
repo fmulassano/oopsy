@@ -530,8 +530,8 @@ namespace oopsy {
 			config.parity        = daisy::UartHandler::Config::Parity::NONE;
 			config.mode          = daisy::UartHandler::Config::Mode::TX_RX;
 			config.wordlength    = daisy::UartHandler::Config::WordLength::BITS_8;
-			config.pin_config.rx = daisy::Pin(daisy::GPIOPort::B, 7);
-			config.pin_config.tx = daisy::Pin(daisy::GPIOPort::B, 6);
+			config.pin_config.rx = daisy::Pin(daisy::PORTB, 7);
+			config.pin_config.tx = daisy::Pin(daisy::PORTB, 6);
 			uart.Init(config);
 			// Use DMA listen mode for MIDI reception in v8.0.0
 			uart.DmaListenStart(midi_rx_buffer, 256, MidiRxCallback, this);
