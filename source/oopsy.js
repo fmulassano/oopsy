@@ -39,6 +39,9 @@ const fs = require("fs"),
 	assert = require("assert");
 const {exec, execSync, spawn} = require("child_process");
 
+const json2daisy = require(path.join(__dirname, "json2daisy.js"));
+const daisy_glue = require(path.join(__dirname, "daisy_glue.js"));
+
 // returns the path `str` with posix path formatting:
 function posixify_path(str) {
 	return str.split(path.sep).join(path.posix.sep);
@@ -537,23 +540,45 @@ function run() {
 
 	let OOPSY_TARGET_SEED = 0
 
+	let valid_soms = ['seed', 'patch_sm', 'petal_125b_sm'];
+	let valid_app_type = ['BOOT_NONE', 'BOOT_SRAM', 'BOOT_QPSI'];
+	let som = 'seed';
+
+	let old_json = false;
+
 	// configure target:
 	if (!target && !target_path) target = "patch";
 	if (!target_path) {
 		target_path = path.join(__dirname, `daisy.${target}.json`);
+		old_json = true;
 	} else {
-		OOPSY_TARGET_SEED = 1
+		// TODO -- should a seed target even really exist? Custom boards
+		// (and even prototypes / breadboards) should really be defined with a JSON file
+		// OOPSY_TARGET_SEED = 1
 		target = path.parse(target_path).name.replace(".", "_")
+		// som_match = path.parse(target_path).name.match(/([A-Za-z_0-9\-]+)\./)
+		// assert(som_match != null, `Daisy SOM undefined. Provide the SOM as in the following: "som.MyBoard.json"`);
+		// assert(valid_soms.includes(som_match[1]), `unkown SOM ${som_match[1]}. Valid SOMs: ${valid_soms.join(', ')}`);
+		// som = som_match[1];
 	}
 	console.log(`Target ${target} configured in path ${target_path}`)
 	assert(fs.existsSync(target_path), `couldn't find target configuration file ${target_path}`);
 	const hardware = JSON.parse(fs.readFileSync(target_path, "utf8"));
 	hardware.max_apps = hardware.max_apps || 1
+	// hardware.som = som;
+
+	// Ensure som is valid
+	assert(valid_soms.includes(hardware.som), `unkown SOM ${hardware.som}. Valid SOMs: ${valid_soms.join(', ')}`);
+
+	// ensure app type is valid
+	hardware.app_type = hardware.app_type || "BOOT_NONE";
+	assert(valid_app_type.includes(hardware.app_type), `unkown app type ${hardware.app_type}. Valid types: ${valid_app_type.join(', ')}`);
 
 	// The following is compatibility code, so that the new JSON structure will generate the old JSON structure
 	// At the point that the old one can be retired (because e.g. Patch, Petal etc can be defined in the new format)
 	// this script should be revised to eliminate the old workflow
 	{
+		hardware.som = hardware.som || "seed";
 		hardware.inputs = hardware.inputs || {}
 		hardware.outputs = hardware.outputs || {}
 		hardware.datahandlers = hardware.datahandlers || {}
@@ -566,33 +591,47 @@ function run() {
 		hardware.defines = hardware.defines || {}
 		hardware.struct = "";
 
-		if (hardware.components) {
-			hardware.struct = generate_target_struct(hardware);
-			// generate IO
-			for (let component of hardware.components) {
+		let tempname = hardware.name;
+		hardware.name = '';
+		let board_info = json2daisy.generate_header(hardware, target_path);
+		hardware.name = tempname;
 
+		hardware.struct = board_info.header;
+		hardware.components = board_info.components;
+		hardware.aliases = board_info.aliases;
+		hardware.includes = board_info.includes;
+
+		if (hardware.components) {
+			// generate IO
+			for (let comp in hardware.components) {
+				let component = hardware.components[comp];
 				// meta-elements are handled separately
 				if (component.meta) {
-					
+
 				} else {
 					// else it is available for gen mapping:
 
 					for (let mapping of component.mapping) {
-						let name = template(mapping.name, component);
+						// let name = template(mapping.name, component);
+						component.class_name = 'hardware';
+						component.name_upper = component.name.toUpperCase();
+						let name = json2daisy.format_map(mapping.name, component);
+						component.value = name;
 						if (mapping.get) {
 							// an input
 							hardware.inputs[name] = {
-								code: template(mapping.get, component),
+								code: json2daisy.format_map(mapping.get, component),
 								automap: component.automap && name == component.name,
 								range: mapping.range,
-								where: mapping.where
+								where: mapping.where,
+								permit_scale: mapping.permit_scale != undefined ? mapping.permit_scale : true
 							}
 							hardware.labels.params[name] = name
 						}
 						if (mapping.set) {
 							// an output
 							hardware.outputs[name] = {
-								code: template(mapping.set, component),
+								code: json2daisy.format_map(mapping.set, component),
 								automap: component.automap && name == component.name,
 								range: mapping.range,
 								where: mapping.where || "audio"
@@ -603,6 +642,9 @@ function run() {
 				}
 			}
 		}
+
+		if (old_json)
+			hardware.defines.OOPSY_OLD_JSON = 1
 
 		for (let alias in hardware.aliases) {
 			let map = hardware.aliases[alias]
@@ -746,6 +788,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 ${Object.keys(hardware.defines).map(k=>`
 #define ${k} (${hardware.defines[k]})`).join("")}
 ${hardware.struct}
+
+using json2daisy::Daisy;
 
 ${hardware.inserts.filter(o => o.where == "header").map(o => o.code).join("\n")}
 #include "../genlib_daisy.h"
