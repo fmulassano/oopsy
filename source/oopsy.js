@@ -1602,7 +1602,11 @@ struct App_${name} : public oopsy::App<App_${name}> {
 		#ifdef OOPSY_TARGET_PATCH_SM
 		daisy.gen = ${name}::create(daisy.hardware.AudioSampleRate(), daisy.hardware.AudioBlockSize());
 		#else
+		#ifdef OOPSY_OLD_JSON
 		daisy.gen = ${name}::create(daisy.hardware.seed.AudioSampleRate(), daisy.hardware.seed.AudioBlockSize());
+		#else
+		daisy.gen = ${name}::create(daisy.som->AudioSampleRate(), daisy.som->AudioBlockSize());
+		#endif
 		#endif
 		${name}::State& gen = *(${name}::State *)daisy.gen;
 		
