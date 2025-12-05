@@ -12,4 +12,7 @@ help/*.h
 help/*.json
 templates/*.cpp
 templates/*.h
-templates/*.json.DS_Store
+templates/*.json
+.DS_Store
+*.DS_Store
+**/.DS_Store
