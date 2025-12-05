@@ -534,7 +534,6 @@ namespace oopsy {
 			config.pin_config.tx = daisy::Pin(daisy::DSY_GPIOB, 6);
 			uart.Init(config);
 			// Use DMA listen mode for MIDI reception in v8.0.0
-			static uint8_t midi_rx_buffer[256];
 			uart.DmaListenStart(midi_rx_buffer, 256, MidiRxCallback, this);
 			#endif
 
