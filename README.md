@@ -87,7 +87,7 @@ For details of the licensing terms of code exported from gen~ see https://suppor
 
 ## Changelog
 
-### libdaisy v8.0.0 Update (December 2024)
+### libdaisy v8.0.0 Update (December 2025)
 
 This update brings Oopsy compatibility with libdaisy v8.0.0 and adds support for the Cosmolab board by Faselunare. The update was performed by Francesco Mulassano of Faselunare.
 
