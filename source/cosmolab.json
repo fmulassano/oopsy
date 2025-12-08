@@ -117,10 +117,7 @@
       "index": 7,
       "parent": "pot_mux"
     },
-    "cvout1": {
-      "component": "CVOuts"
-    },
-    "cvout2": {
+    "cvout": {
       "component": "CVOuts"
     },
     "gatein": {

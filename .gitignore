@@ -19,3 +19,6 @@ templates/*.json
 
 # Cosmolab hardware v1 (prototypes only, not for distribution)
 source/cosmolab_hw_v1.json
+source/COSMOLAB_BOARDS_README.md
+COSMOLAB_README.md
+COSMOLAB_BUTTON_POLARITY_FIX.md
