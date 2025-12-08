@@ -16,3 +16,6 @@ templates/*.json
 .DS_Store
 *.DS_Store
 **/.DS_Store
+
+# Cosmolab hardware v1 (prototypes only, not for distribution)
+source/cosmolab_hw_v1.json
